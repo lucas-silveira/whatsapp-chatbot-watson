@@ -17,7 +17,7 @@ class WhatsappMessage {
         body: 'Hello World',
         to: 'whatsapp:+5519987202267',
       })
-      .then(message => console.log(message.sid));
+      .then(response => console.log(response.sid));
   }
 }
 
