@@ -32,31 +32,41 @@ class WhatsappMessage {
       await WhatsappSessions.create(whatsappClient, sessionId);
     }
 
-    const {
-      result: {
-        output: {
-          generic: [{ text: responseAssistant }],
-        },
-      },
-    } = await assistant.message({
-      assistantId: process.env.ASSISTANT_ID,
-      sessionId,
-      input: {
-        message_type: 'text',
-        text: message,
-      },
-    });
+    let responseAssistant;
 
-    client.messages
+    await assistant
+      .message({
+        assistantId: process.env.ASSISTANT_ID,
+        sessionId,
+        input: {
+          message_type: 'text',
+          text: message,
+        },
+      })
+      .then(data => {
+        responseAssistant = data.result.output;
+      })
+      .catch(async err => {
+        console.log(err.message);
+        await WhatsappSessions.delete(whatsappClient);
+        responseAssistant = {
+          generic: [{ text: 'Olá! Como posso ajudá-lo?' }],
+        };
+      });
+
+    const {
+      generic: [{ text: responseAssistantText }],
+    } = responseAssistant;
+
+    console.log(responseAssistant);
+
+    return client.messages
       .create({
         from: 'whatsapp:+14155238886',
-        body: responseAssistant,
+        body: responseAssistantText,
         to: whatsappClient,
       })
       .then(response => console.log(response.sid));
-
-    if (responseAssistant.includes('finalizada'))
-      await WhatsappSessions.delete(whatsappClient);
   }
 }
 
