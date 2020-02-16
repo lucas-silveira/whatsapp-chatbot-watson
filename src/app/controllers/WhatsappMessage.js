@@ -22,6 +22,11 @@ class WhatsappMessage {
 
     if (sessionExists) {
       sessionId = sessionExists.session;
+
+      if (sessionExists.step === 'name' && !sessionExists.name) {
+        // atualizar session name do usuário
+        // consultar api google agenda
+      }
     } else {
       const newSession = await assistant.createSession({
         assistantId: process.env.ASSISTANT_ID,
@@ -29,7 +34,13 @@ class WhatsappMessage {
 
       sessionId = newSession.result.session_id;
 
-      await WhatsappSessions.create(whatsappClient, sessionId);
+      await WhatsappSessions.create({
+        whatsapp: whatsappClient,
+        session: sessionId,
+        name: '',
+        step: 'chat',
+        entities: [],
+      });
     }
 
     let responseAssistant;
@@ -59,6 +70,17 @@ class WhatsappMessage {
     } = responseAssistant;
 
     console.log(responseAssistant);
+
+    if (responseAssistantText.includes('nome')) {
+      // atualizar session step e variáveis do usuário
+      return client.messages
+        .create({
+          from: 'whatsapp:+14155238886',
+          body: 'Por gentileza, informe-nos o seu nome.',
+          to: whatsappClient,
+        })
+        .then(response => console.log(response.sid));
+    }
 
     return client.messages
       .create({

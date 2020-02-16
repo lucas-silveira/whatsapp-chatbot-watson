@@ -38,7 +38,7 @@ class WhatsappSessions {
     });
   }
 
-  create(whatsapp, session) {
+  create(body) {
     return new Promise((res, rej) => {
       fs.exists(
         resolve(__dirname, '..', '..', '..', 'tmp', 'whatsapp_sessions.json'),
@@ -61,10 +61,7 @@ class WhatsappSessions {
 
                 const obj = JSON.parse(fileData);
 
-                obj.push({
-                  whatsapp,
-                  session,
-                });
+                obj.push(body);
 
                 const json = JSON.stringify(obj);
 
@@ -85,12 +82,7 @@ class WhatsappSessions {
               }
             );
           } else {
-            const obj = [
-              {
-                whatsapp,
-                session,
-              },
-            ];
+            const obj = [body];
 
             const json = JSON.stringify(obj);
             fs.writeFile(
