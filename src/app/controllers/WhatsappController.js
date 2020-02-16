@@ -4,7 +4,7 @@ import assistant from '../../config/imb-watson';
 
 import WhatsappSessions from '../helpers/WhatsappSessions';
 
-class WhatsappMessage {
+class WhatsappController {
   async store(req, res) {
     const client = twilio(
       process.env.TWILIO_SID,
@@ -92,4 +92,4 @@ class WhatsappMessage {
   }
 }
 
-export default new WhatsappMessage();
+export default new WhatsappController();

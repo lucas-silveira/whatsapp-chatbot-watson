@@ -1,143 +1,27 @@
-import fs from 'fs';
-import { resolve } from 'path';
+import WPsessionsJSON from '../../lib/WPsessions';
 
 class WhatsappSessions {
   find(whatsapp) {
-    return new Promise((res, rej) => {
-      fs.exists(
-        resolve(__dirname, '..', '..', '..', 'tmp', 'whatsapp_sessions.json'),
-        exists => {
-          if (exists) {
-            fs.readFile(
-              resolve(
-                __dirname,
-                '..',
-                '..',
-                '..',
-                'tmp',
-                'whatsapp_sessions.json'
-              ),
-              function readFileCallback(err, fileData) {
-                if (err) {
-                  console.log(err);
-                  return rej(err);
-                }
+    const content = WPsessionsJSON.load();
+    const session = content.find(item => item.whatsapp === whatsapp);
 
-                const obj = JSON.parse(fileData);
-
-                const objItem = obj.find(item => item.whatsapp === whatsapp);
-
-                return res(objItem);
-              }
-            );
-          } else {
-            return res(null);
-          }
-        }
-      );
-    });
+    return session;
   }
 
   create(body) {
-    return new Promise((res, rej) => {
-      fs.exists(
-        resolve(__dirname, '..', '..', '..', 'tmp', 'whatsapp_sessions.json'),
-        exists => {
-          if (exists) {
-            fs.readFile(
-              resolve(
-                __dirname,
-                '..',
-                '..',
-                '..',
-                'tmp',
-                'whatsapp_sessions.json'
-              ),
-              function readFileCallback(err, fileData) {
-                if (err) {
-                  console.log(err);
-                  return rej(err);
-                }
+    const content = WPsessionsJSON.load();
+    content.push(body);
+    WPsessionsJSON.save(content);
 
-                const obj = JSON.parse(fileData);
-
-                obj.push(body);
-
-                const json = JSON.stringify(obj);
-
-                fs.writeFile(
-                  resolve(
-                    __dirname,
-                    '..',
-                    '..',
-                    '..',
-                    'tmp',
-                    'whatsapp_sessions.json'
-                  ),
-                  json,
-                  () => {}
-                );
-
-                return res(true);
-              }
-            );
-          } else {
-            const obj = [body];
-
-            const json = JSON.stringify(obj);
-            fs.writeFile(
-              resolve(
-                __dirname,
-                '..',
-                '..',
-                '..',
-                'tmp',
-                'whatsapp_sessions.json'
-              ),
-              json,
-              () => {}
-            );
-
-            return res(true);
-          }
-        }
-      );
-    });
+    return content;
   }
 
   delete(whatsapp) {
-    return new Promise((res, rej) => {
-      fs.readFile(
-        resolve(__dirname, '..', '..', '..', 'tmp', 'whatsapp_sessions.json'),
-        function readFileCallback(err, fileData) {
-          if (err) {
-            console.log(err);
-            return rej(err);
-          }
+    const content = WPsessionsJSON.load();
+    const newContent = content.filter(item => item.whatsapp !== whatsapp);
+    WPsessionsJSON.save(newContent);
 
-          const obj = JSON.parse(fileData);
-
-          const newData = obj.filter(item => item.whatsapp !== whatsapp);
-
-          const json = JSON.stringify(newData);
-
-          fs.writeFile(
-            resolve(
-              __dirname,
-              '..',
-              '..',
-              '..',
-              'tmp',
-              'whatsapp_sessions.json'
-            ),
-            json,
-            () => {}
-          );
-
-          return res(true);
-        }
-      );
-    });
+    return true;
   }
 }
 
