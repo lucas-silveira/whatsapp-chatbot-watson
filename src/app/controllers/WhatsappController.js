@@ -3,6 +3,7 @@ import twilio from 'twilio';
 import assistant from '../../config/imb-watson';
 
 import WhatsappSessions from '../helpers/WhatsappSessions';
+import Calendar from '../helpers/Calendar';
 
 class WhatsappController {
   async store(req, res) {
@@ -23,9 +24,25 @@ class WhatsappController {
     if (sessionExists) {
       sessionId = sessionExists.session;
 
-      if (sessionExists.step === 'name' && !sessionExists.name) {
-        // atualizar session name do usuário
-        // consultar api google agenda
+      if (sessionExists.step === 'name') {
+        const name = message;
+        await WhatsappSessions.update(whatsappClient, {
+          ...sessionExists,
+          name,
+        });
+
+        const { entities } = sessionExists;
+        const whatsapp = whatsappClient.slice(9);
+
+        await Calendar.createEvent({ name, whatsapp, ...entities });
+
+        await client.messages.create({
+          from: 'whatsapp:+14155238886',
+          body: `Obrigado ${name}! A reunião foi agendada.`,
+          to: whatsappClient,
+        });
+
+        return WhatsappSessions.delete(whatsappClient);
       }
     } else {
       const newSession = await assistant.createSession({
@@ -39,7 +56,7 @@ class WhatsappController {
         session: sessionId,
         name: '',
         step: 'chat',
-        entities: [],
+        entities: {},
       });
     }
 
@@ -56,10 +73,21 @@ class WhatsappController {
       })
       .then(data => {
         responseAssistant = data.result.output;
+        if (responseAssistant.entities.length) {
+          responseAssistant.entities.forEach(entity => {
+            const title = entity.entity.includes('sys')
+              ? entity.entity.replace('-', '_')
+              : entity.entity;
+
+            sessionExists.entities[title] = entity.value;
+          });
+
+          WhatsappSessions.update(whatsappClient, sessionExists);
+        }
       })
-      .catch(async err => {
+      .catch(err => {
         console.log(err.message);
-        await WhatsappSessions.delete(whatsappClient);
+        WhatsappSessions.delete(whatsappClient);
         responseAssistant = {
           generic: [{ text: 'Olá! Como posso ajudá-lo?' }],
         };
@@ -69,14 +97,17 @@ class WhatsappController {
       generic: [{ text: responseAssistantText }],
     } = responseAssistant;
 
-    console.log(responseAssistant);
-
     if (responseAssistantText.includes('nome')) {
-      // atualizar session step e variáveis do usuário
+      sessionExists.step = 'name';
+      WhatsappSessions.update(whatsappClient, {
+        ...sessionExists,
+        step: 'name',
+      });
+
       return client.messages
         .create({
           from: 'whatsapp:+14155238886',
-          body: 'Por gentileza, informe-nos o seu nome.',
+          body: 'Legal! Qual é o seu nome?',
           to: whatsappClient,
         })
         .then(response => console.log(response.sid));

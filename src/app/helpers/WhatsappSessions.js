@@ -8,6 +8,15 @@ class WhatsappSessions {
     return session;
   }
 
+  update(whatsapp, body) {
+    const content = WPsessionsJSON.load();
+    const newContent = content.filter(item => item.whatsapp !== whatsapp);
+    newContent.push(body);
+    WPsessionsJSON.save(newContent);
+
+    return body;
+  }
+
   create(body) {
     const content = WPsessionsJSON.load();
     content.push(body);

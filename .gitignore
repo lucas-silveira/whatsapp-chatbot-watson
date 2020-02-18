@@ -6,4 +6,7 @@ tmp/*
 
 dist
 
+src/keys/*
+!src/keys/.gitkeep
+
 ngrok.exe
