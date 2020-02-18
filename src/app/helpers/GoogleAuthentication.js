@@ -8,7 +8,7 @@ const SCOPES = ['https://www.googleapis.com/auth/calendar'];
 // The file token.json stores the user's access and refresh tokens, and is
 // created automatically when the authorization flow completes for the first
 // time.
-const TOKEN_PATH = resolve(__dirname, '..', '..', 'keys', 'token.json');
+const TOKEN_PATH = resolve(__dirname, '..', '..', '..', 'tmp', 'token.json');
 
 function getAccessToken(oAuth2Client, callback) {
   const authUrl = oAuth2Client.generateAuthUrl({
